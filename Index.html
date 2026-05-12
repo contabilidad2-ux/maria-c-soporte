@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARIA_C — Soporte Operativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #ece5dd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  #phone {
+    width: 100%;
+    max-width: 420px;
+    height: 92vh;
+    max-height: 760px;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    background: #e5ddd5;
+  }
+
+  #hdr {
+    background: #075e54;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  #hdr-av {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #128c7e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  #hdr-name { color: #fff; font-size: 15px; font-weight: 600; }
+  #hdr-sub  { color: rgba(255,255,255,.75); font-size: 12px; }
+
+  #msgs {
+    flex: 1; overflow-y: auto;
+    padding: 12px 10px 6px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  #msgs::-webkit-scrollbar { width: 3px; }
+  #msgs::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 3px; }
+
+  .bbl {
+    max-width: 82%; padding: 8px 11px 5px;
+    border-radius: 8px; font-size: 14px; line-height: 1.45; color: #111;
+  }
+  .bbl.bot { background: #fff; align-self: flex-start; border-top-left-radius: 2px; }
+  .bbl.usr { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 2px; }
+  .bbl .txt { white-space: pre-wrap; word-break: break-word; }
+  .bbl .ts  { font-size: 11px; color: #999; text-align: right; margin-top: 3px; }
+  .bbl.usr .ts { display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+  .ck { color: #53bdeb; font-size: 12px; }
+
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  .obtn {
+    background: transparent; border: 1.5px solid #25d366; color: #075e54;
+    border-radius: 20px; padding: 5px 14px; font-size: 13px;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s, color .15s;
+  }
+  .obtn:hover  { background: #25d366; color: #fff; }
+  .obtn:disabled { opacity: .4; cursor: default; }
+
+  .sel-row { display: flex; flex-direction: column; gap: 6px; margin-top: 7px; }
+  .sel-row select {
+    font-family: inherit; font-size: 13px; border-radius: 8px;
+    border: 1px solid #ccc; padding: 6px 10px; background: #fff; color: #111; width: 100%;
+  }
+  .sel-row button, .inp-row button {
+    font-family: inherit; font-size: 13px; background: #075e54; color: #fff;
+    border: none; border-radius: 20px; padding: 6px 16px; cursor: pointer; align-self: flex-start;
+  }
+  .sel-row button:hover, .inp-row button:hover { background: #128c7e; }
+
+  .inp-row { display: flex; flex-direction: column; gap: 6px; margin-top: 7px; }
+  .inp-row input, .inp-row select {
+    font-family: inherit; font-size: 13px; border: 1px solid #ccc;
+    border-radius: 8px; padding: 6px 10px; background: #fff; color: #111; width: 100%;
+  }
+  .inp-row button { margin-top: 2px; }
+
+  .confirm-box {
+    background: #f0f9f4; border: 1px solid #25d366;
+    border-radius: 8px; padding: 9px 11px; margin-top: 7px; font-size: 13px; color: #111;
+  }
+  .confirm-box .lbl { color: #075e54; font-weight: 600; font-size: 11px; margin-bottom: 1px; }
+  .confirm-box .val { margin-bottom: 5px; }
+  .confirm-btns { display: flex; gap: 8px; margin-top: 7px; }
+  .confirm-btns button {
+    font-family: inherit; font-size: 13px; border-radius: 20px; padding: 5px 16px;
+    cursor: pointer; border: 1.5px solid;
+  }
+  .btn-ok  { background: #075e54; color: #fff; border-color: #075e54; }
+  .btn-ok:hover { background: #128c7e; }
+  .btn-ko  { background: transparent; color: #c0392b; border-color: #c0392b; }
+  .btn-ko:hover { background: #fdecea; }
+
+  .typing {
+    display: flex; align-items: center; gap: 4px;
+    padding: 10px 13px; background: #fff; border-radius: 8px;
+    align-self: flex-start; border-top-left-radius: 2px;
+  }
+  .dot {
+    width: 7px; height: 7px; background: #aaa; border-radius: 50%;
+    animation: bop .9s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: .15s; }
+  .dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes bop {
+    0%, 60%, 100% { transform: translateY(0); }
+    30%           { transform: translateY(-5px); }
+  }
+
+  #bar {
+    background: #f0f0f0; padding: 8px 10px;
+    display: flex; align-items: center; gap: 8px;
+    border-top: 1px solid #ddd; flex-shrink: 0;
+  }
+  #ti {
+    flex: 1; border: none; background: #fff; border-radius: 20px;
+    padding: 9px 14px; font-family: inherit; font-size: 14px;
+    outline: none; color: #111;
+  }
+  #sb {
+    width: 40px; height: 40px; border-radius: 50%; background: #25d366;
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .15s;
+  }
+  #sb:hover { background: #1ebe5d; }
+  #sb svg { width: 20px; height: 20px; fill: #fff; }
+
+  .badge-ok { display: inline-block; background: #dcf8c6; color: #075e54; font-size: 12px; font-weight: 600; border-radius: 10px; padding: 2px 10px; margin-top: 5px; }
+  .badge-pa { display: inline-block; background: #fff3cd; color: #856404; font-size: 12px; font-weight: 600; border-radius: 10px; padding: 2px 10px; margin-top: 5px; }
+
+  @media (max-width: 480px) {
+    body { padding: 0; align-items: flex-start; }
+    #phone { height: 100vh; max-height: 100vh; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="phone">
+  <div id="hdr">
+    <div id="hdr-av">🛍️</div>
+    <div>
+      <div id="hdr-name">MARIA_C</div>
+      <div id="hdr-sub" id="hdr-sub">en línea</div>
+    </div>
+  </div>
+  <div id="msgs"></div>
+  <div id="bar">
+    <input id="ti" type="text" placeholder="Escribe un mensaje..." autocomplete="off" />
+    <button id="sb" aria-label="Enviar">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const VENDEDORES = {
+  1:"Maria",2:"Marcos",3:"Oscar",4:"Juan",5:"Ruben",6:"Mateo",7:"Paulino",8:"Cesar",9:"Juan",10:"Daniel",11:"Gerard",12:"Pilar",13:"Daniel",14:"Jordi",15:"Laura",16:"Emilio",17:"Mary",18:"Daniel",21:"Maria",22:"Raquel",23:"Felipe",24:"Jesus",25:"Pilar",26:"Silvia",27:"Jose",29:"Soraya",30:"Yolanda",33:"Oscar",34:"Ivan",35:"María",41:"Oscar",42:"Marimar",54:"Ruben",55:"Laura",56:"Eduardo",57:"Faustino",58:"Gregorio",59:"Noelia",60:"Sole",61:"Juan",63:"Jose",64:"Juanma",67:"Manuel",70:"Juan",82:"Alberto",84:"Emilio",86:"Ana",87:"Camino",90:"Marcos",91:"Mercedes",93:"Daniel",96:"Jennifer",99:"Joaquim",102:"Ismael",103:"Ana",104:"Javier",105:"Jose",106:"Maria",107:"Rocio",108:"Noelia",110:"Laura",111:"Javier",116:"Merche",117:"Emilio",118:"Ana",119:"Cesar",121:"Juancarlos",122:"Maria",123:"Raquel",124:"Silvia",125:"Soraya",126:"Cileia",127:"Yeray",128:"Jose",129:"Jose",130:"Marian",131:"Esteban",132:"Ana",133:"Daniel",134:"Goizalde",135:"Dragos",136:"Dario",137:"Iago",138:"Jose",139:"Azucena",140:"Cristina",141:"Alvaro",142:"Diana",143:"Marimar",144:"Arturo",145:"Maria",146:"Javier",147:"Juanjo",148:"Marga",149:"Juan",150:"Junior",151:"Cristobal",152:"Inma",153:"Javier",154:"Raul",155:"Ana",157:"Abraham",158:"Pedro",159:"Oscar",160:"Ivan",161:"Alberto",162:"Daniel",163:"Camino",164:"Manuel",165:"Sonia",166:"Lidia",167:"Susana",168:"Rafael",169:"Thais",170:"Ivan",173:"Quim",174:"Jose",175:"Carles",176:"Fani",177:"Isidro",178:"Ana",179:"Rocio",180:"Marta",181:"Leopoldo",182:"Maria",183:"Xavier",184:"Xenia",185:"Lucia",190:"Samuel",191:"Luis",192:"Berta",193:"Ainara",194:"Sergio",195:"Dolors",196:"Esther",197:"Merce",198:"Diego",199:"Rossent",201:"Mary",202:"Miguel",203:"Manuel",204:"Montserrat",205:"Raul",206:"Roberto",207:"Eduardo",209:"Marta",210:"Alberto",211:"Ana",212:"Juan",213:"Sergio",214:"Angel",215:"Antonio",216:"Robert",217:"Mar",218:"Francisco",219:"Roberto",220:"Susana",221:"Ricardo",223:"Iñaki",224:"Manuel",225:"Silvia",226:"Begoña",230:"Manuel",231:"Isaias",233:"Enrique",234:"Jesus",235:"Rafa",237:"Alberto",238:"Victor",239:"Carlos",240:"Roberto",241:"Gema",242:"Ruben",243:"David",252:"Bernardo",253:"Jesus",254:"Fran",255:"Carlos",256:"María",263:"Alberto",264:"Mercedes",265:"Alejandra",266:"Alvaro",268:"Rebeca",269:"Raul",271:"Maria",274:"Raquel",275:"Natalia",276:"Rosa",277:"Almudena",278:"Marga",279:"Roberto",280:"Montse",281:"Juancarlos",282:"Gonzalo",283:"Manolo",284:"Anna",285:"Alfredo",286:"Raul",287:"David",288:"Patricia",290:"Santiago",291:"David",292:"Juan",293:"Victor",294:"Francisco",295:"Edgar",296:"Alicia",300:"Almudena",302:"Jesus",303:"David",304:"Andres",305:"Francisco",306:"Veronica",307:"Irene",308:"Guillermo",309:"Fernando",310:"Miguel",311:"Nacho",312:"Victor",313:"Maria",315:"Soraya",316:"Felicitas",317:"Miryam",318:"Pedro",319:"Andres",320:"Belén",321:"Marcos",322:"Angel",323:"Juan",324:"Manolo",325:"Yolanda",326:"Silvia",327:"Susana",328:"Gorka",329:"Valentin",330:"Jorge",331:"Jesus",332:"Carlos",333:"Judith",334:"Carlos",335:"Ana",336:"Andrea",337:"Alvaro",338:"Alvaro",339:"Diego",340:"Almudena",341:"David",342:"Carme",343:"Lourdes",344:"Zuriñe",345:"Juan",346:"Julio",347:"Felix",348:"Jesus",349:"Beatriz",350:"Elena",351:"Sandra",352:"Manuel",353:"Marian",354:"Victor",355:"Marian",356:"Victor",357:"Gustavo",358:"Pedro",359:"Itziar",360:"Itziar",361:"Cristina",362:"Martin",363:"Unai",364:"Aitziber",365:"Ismael",366:"Alejandro",367:"Zigor",368:"Carlos",369:"Eva",370:"Veronica",371:"Ivan",373:"Vanesa",374:"Andreu",375:"Jose",376:"Noelia",377:"Rafael",378:"Erlantz",379:"Pablo",380:"Manel",381:"Maria",382:"Ignacio",383:"Aida",384:"Yudel",385:"Javier",386:"Ana",387:"Santiago",388:"Inmaculada",389:"Gema",390:"Andres",391:"Maria",392:"Sergio",393:"Rafael",394:"Stefan",395:"Miquel",396:"Oscar",397:"Jose",398:"Miren",399:"Juan",400:"Andreea",402:"Andrea",403:"Adela",404:"Fernando",405:"Liliana",406:"Katia",408:"Andoni",409:"Ibon",410:"Antonio",411:"Eugenio",412:"Imanol",413:"Jose",414:"Marcos",415:"Vanesa",416:"Juan",417:"Patricia",418:"Ainhoa",419:"Anxo",420:"Santiago",421:"Cristina",422:"Amelia",423:"Luis",424:"Carlos",425:"Sheila",426:"Manolo",427:"Susana",428:"Marta",429:"Mikel",430:"Daniel",431:"Pilar",432:"Francesc",433:"Susana",434:"Marcela",435:"Dolors",436:"Omar",437:"Carlos",439:"Diego",440:"Marta",441:"Daniel",442:"Elena",443:"Felix",444:"Jose",445:"Pedro",446:"Miguel",447:"Javier",448:"Esteban",449:"Pablo",450:"Roberto",451:"Arantza",452:"Julio",453:"Oier",454:"Gustavo",455:"Abel",456:"Sonia",457:"Eva",458:"Pedro",459:"Guillermo",460:"Jose",461:"David",462:"Mar",463:"Tania",464:"Elena",465:"Marina",466:"Alejandro",467:"Francisco",468:"Carles",469:"Rocio",470:"Silvina",471:"Natalia",472:"Andres",473:"Ramon",474:"Larraitz",475:"Esperanza",476:"Carolina",477:"Miguel",478:"Nacho",479:"Marta",480:"Ibon",481:"Ruben",482:"David",483:"Rosa",484:"Tamara",485:"Cristian",486:"David",487:"Antonio",488:"Oscar",489:"Ruben",490:"Astrid",491:"Gema",492:"Karin",493:"Sonia",494:"Silvia",495:"Antonio",496:"Cristina",497:"Luis",498:"Rosa",499:"Amparo",500:"Maria",501:"Pedro",502:"Oriol",503:"Iratxe",504:"Miguel",505:"David",506:"María",507:"Yolanda",508:"Paula",509:"Igor",510:"Alejandro",511:"Noelia",512:"Jose",513:"Oscar",514:"Marian",515:"David",516:"Angel",517:"Ana",518:"Leonel",519:"Ruben",520:"Guimel",521:"Ivan",522:"Ana",523:"Ana",524:"Jorge",525:"Manuel",526:"Cileia",527:"Edward",528:"Natalia",529:"Ziortza",530:"Juan",531:"Andres",532:"Ignacio",533:"David",534:"Daniel",535:"Pedro",536:"Miguel",537:"Rocio",538:"Jose",539:"Ruben",540:"Amado",541:"Daniel",542:"Violeta",543:"Miguel",544:"Karina",545:"Jesús",546:"Enrique",547:"Gregorio",549:"Albino",550:"Laura",551:"Albert",552:"Cristina",553:"Jose",554:"Emili",555:"Antonia",556:"Miriam",557:"Silvia",558:"Eneko",559:"Esther",560:"Marilo",562:"Omar",564:"Blanca",565:"Fermin",566:"Susana",567:"Alberto",568:"Ramon",569:"Araceli",570:"Lourdes",571:"Katia",577:"Monica",578:"Rosa",579:"Susana",580:"Alberto",581:"Jonathan",582:"Elisabet",583:"Antonio",584:"Bachir",585:"Romina",586:"Sonia",587:"Francisco",588:"Marta",589:"Diana",590:"Alberto",591:"Laura",592:"David",593:"Melina",594:"Noelia",595:"Araceli",596:"Barbara",597:"Jose",598:"Leo",599:"Francisco",600:"Juan",601:"Jose",602:"Andres",603:"Luis",604:"Javier",605:"Santiago",606:"Elena",607:"Sebastian",608:"Luis",609:"Maria",610:"Alberto",611:"Mar",612:"Carmen",613:"Iban",614:"Carlos",615:"Francesc",616:"Joan",617:"Nekane",618:"Ahmed",619:"Antonio",620:"Juan",621:"Adela",622:"Jordi",623:"Mariano",624:"Asun",625:"Alfonso",626:"Carme",627:"Elisabet",628:"David",629:"Susana",630:"Vanessa",631:"Alvaro",632:"Lourdes",633:"Alberto",634:"María",635:"Natalia",636:"Jose",637:"Marta",638:"María",639:"Mikel",640:"Reyes",641:"Eduardo",642:"Jaime",643:"Larisa",644:"David",645:"Rocio",646:"Julia",647:"Laura",648:"Cesar",649:"Anna",650:"Felix",651:"Oriana",652:"Mireia",653:"Pilar",654:"Ivan",655:"Maria",656:"Moises",657:"Aurora",658:"Nikolay",659:"Robert",660:"Maria",661:"Sergio",662:"Miguel",663:"Francisco",664:"Borja",665:"Noelia",666:"Marian",667:"Emilio",668:"Fernando",669:"Daniel",671:"Carolina",672:"Juan",673:"Sara",674:"Yolanda",675:"Cristina",676:"Khalil",677:"Hector",678:"Alberto",679:"Natalia",680:"Enric",681:"Soraya",682:"Hoshyar",683:"Teresa",684:"David",685:"Xabier",686:"Ana",687:"Miriam",688:"Laura",689:"Luis",690:"Jesus",691:"Ana",692:"Lola",693:"Alan",694:"Asun",695:"Goyo",696:"Victoria",697:"Mar",698:"Miguel",699:"Jennifer",700:"Felice",701:"Salome",702:"Pablo",703:"Mary",704:"Teresa",705:"Francisco",706:"Marta",707:"Veronica",708:"Jordi",709:"Ivan",710:"Elena",711:"Daniel",712:"Jonathan",713:"Yolanda",714:"Daniel",715:"Noemi",716:"Oscar",717:"Jose",718:"Maura",719:"Oscar",720:"Eva",721:"Mauro",722:"Maribel",723:"Daniel",724:"Monica",725:"Joaquin",726:"Sandra",727:"Julio",728:"Maria",729:"Miriam",730:"Alessandra",731:"Pedro",732:"Elena",733:"Ismael",734:"Albert",735:"Juan",736:"Alejandro",737:"Jose",738:"Irene",739:"Oscar",740:"Rebeca",741:"Natalia",742:"Carolina",743:"Pablo",744:"Mariana",745:"Luis",746:"Rosa",747:"Raquel",748:"Victor",749:"Vanesa",750:"Paula",751:"Alejandra",752:"Grisel",753:"Elsa",754:"Cristina",755:"Sandra",756:"Betty",757:"Lorena",758:"Patricia",759:"Jose",760:"Pilar",761:"Francisco",762:"Raquel",763:"Sara",764:"Jose",765:"Rodrigo",766:"Isabel",767:"Miguel",769:"David",770:"Cira",771:"Ernesto",772:"Emilio",773:"Vanesa",774:"Lucian",775:"Cecilia",776:"Gonzalo",777:"Gustavo",778:"Jesus",779:"Irene",780:"Jorge",781:"Estela",782:"Vicente",783:"Francisco",785:"Raquel",786:"Maribel",787:"Jose",788:"Carlos",789:"Maria",790:"Javier",791:"Noemi",792:"Elixabet",793:"Josep",794:"Elena",796:"David",797:"Maria",798:"Silvia",799:"Francisco",800:"Ramon",801:"Alfredo",802:"Carmen",803:"Javier",804:"Natalia",805:"Jose",806:"Francisco",807:"Belen",808:"Cintia",809:"Marcos",810:"Pamela",811:"Mireia",812:"Ainara",813:"Miriam",814:"Alejandro",815:"Montse",816:"Manuel",817:"Joaquin",818:"Arantxa",819:"Maria",821:"Jordi",822:"Purificacion",823:"Ruben",824:"Gabriela",825:"Ruben",826:"Laura",827:"Paula",828:"Natalia",829:"Veronica",830:"Beatriz",831:"Isabel",832:"Jose",833:"Maribel",834:"Nacho",835:"Ana",836:"Oscar",837:"Susana",839:"Lucia",840:"Omar",845:"Isabel",846:"Teresa",847:"Rubén",848:"Sandra",849:"Gerard",850:"Juan",851:"Ely",852:"Jordi",853:"Antonio",854:"Arancha",855:"Vanesa",856:"Ana",857:"Ernesto",858:"Marisol",859:"Mar",860:"Mohamed",861:"Yara",862:"Raul",863:"Jose",864:"Eduardo",865:"Maria",866:"Abel",867:"Marcos",868:"Isabel",869:"David",870:"Diana",871:"Maria",875:"Daniel",876:"Juan",877:"Elena",878:"Juan",879:"Maria",880:"Eugenio",881:"Inmaculada",882:"Vanesa",883:"Tania",884:"Noemi",885:"Diego",886:"Igone",887:"Chelo",889:"Adrian",890:"Olga",891:"Eva",892:"Jose",893:"Roser",896:"Borja",898:"Isabel",899:"Jose",900:"Carlota",901:"Alejandro",902:"Maria",903:"Maria",904:"Inma",905:"Alejandro",906:"Daniel",907:"Graciela",908:"Patricia",909:"Juan",910:"Antonio",911:"Daniel",912:"Diego",913:"Begoña",915:"Joaquin",918:"Miguel",919:"Isabel",920:"Francisco",921:"Roberto",922:"Gloria",923:"Marivi",924:"Marina",925:"Jose",926:"Kevin",927:"Nelly",928:"Almudena",929:"Alex",930:"Iñaki",932:"Guillermo",933:"Isabel",934:"Ivan",936:"Belen",937:"Leydi",938:"Alberto",939:"Barbara",940:"Mari",941:"Montse",942:"Natalia",943:"Susanna",944:"Carlos",945:"Andres",946:"Mercedes",947:"Eduardo",948:"Esther",949:"Veronica",950:"Fatima",951:"Sheila",952:"Asmae",953:"Miguel",954:"Laura",955:"Isaac",956:"Alba",957:"David",958:"Javier",959:"Trinidad",960:"Olga",961:"Ruben",962:"Karina",963:"Maxi",964:"Antonio",965:"Adela",966:"María",967:"Sergio",968:"Aleix",969:"Raul",970:"Sandra",971:"Marcos",972:"Laura",973:"Ainhoa",974:"Kike",976:"Adrian",977:"Lidia",978:"Begoña",979:"Mercedes",980:"Winnifer",981:"Yunes",982:"Clara",983:"Laura",984:"Eli",985:"Claudia",986:"Giorgi",987:"Argiñe",988:"Maria",989:"Conchi",990:"Maria",991:"Ana",992:"Vanessa",993:"Thiago",994:"Sonia",995:"Achraf",996:"Graciela",997:"Veronica",998:"Diego",999:"Fani",1000:"Juan",1001:"Juan",1002:"Adriana",1003:"Mario",1004:"Ana",1005:"Almudena",1006:"Nohemi",1007:"Lorena",1008:"Maria",1009:"Carolina",1010:"Jose",1011:"Victoria",1012:"Pedro",1013:"Sebastian",1014:"Rosa",1015:"Antonio",1016:"Amaia",1017:"Patricia",1018:"Edmundo",1019:"Inma",1020:"Sonia",1021:"Sandra",1022:"Tania",1023:"Almudena",1024:"Raquel",1025:"Andrea",1027:"Xesca",1028:"Jorge",1029:"Conrado",1030:"Israel",1031:"Eva",1032:"Juan",1035:"Carolina",1036:"Elena",1037:"Gema",1038:"Juan",1039:"Rebeca",1040:"Ariel",1041:"Jorge",1042:"Carmen",1043:"Laura",1044:"Nicolas",1045:"Laura",1046:"Jose"
+};
+
+const PROVEEDORES = {
+  "Fujitsu": ["Juan Martínez", "Ana López", "Carlos Ruiz"],
+  "Ingenico": ["Pedro Sánchez", "Laura García", "Miguel Torres"],
+  "Zebra": ["Isabel Fernández", "David Mora"],
+  "Epson": ["Roberto Díaz", "Carmen Vega", "Alberto Nieto"],
+  "Datalogic": ["Patricia Jiménez", "Sergio Castro"]
+};
+
+const TIPOS_PAGO = ["Efectivo","Tarjeta Visa","Tarjeta Mastercard","American Express","Bizum","Vale descuento","Tarjeta regalo"];
+
+const msgs = document.getElementById('msgs');
+const ti   = document.getElementById('ti');
+const sb   = document.getElementById('sb');
+
+let state = { fase:'login', nombre:null, tienda:null, flujo:null, tecnico:{}, cobro:{} };
+
+function gt(){
+  const n=new Date();
+  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+function scrollBot(){ msgs.scrollTop=msgs.scrollHeight; }
+
+function addMsg(txt, who, extras){
+  const b=document.createElement('div'); b.className='bbl '+who;
+  const p=document.createElement('div'); p.className='txt'; p.textContent=txt; b.appendChild(p);
+  if(extras) b.appendChild(extras);
+  const ts=document.createElement('div'); ts.className='ts';
+  if(who==='usr') ts.innerHTML=gt()+' <span class="ck">✓✓</span>';
+  else ts.textContent=gt();
+  b.appendChild(ts); msgs.appendChild(b); scrollBot();
+}
+
+function showTyping(){ const d=document.createElement('div'); d.className='typing'; d.id='typ'; d.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>'; msgs.appendChild(d); scrollBot(); }
+function hideTyping(){ const t=document.getElementById('typ'); if(t) t.remove(); }
+
+function botReply(txt, delay, extras){
+  return new Promise(r=>{ showTyping(); setTimeout(()=>{ hideTyping(); addMsg(txt,'bot',extras); r(); }, delay||700); });
+}
+
+function mkOpts(opciones, cb){
+  const row=document.createElement('div'); row.className='opts';
+  opciones.forEach(o=>{
+    const btn=document.createElement('button'); btn.className='obtn'; btn.textContent=o;
+    btn.onclick=()=>{ row.querySelectorAll('button').forEach(b=>b.disabled=true); cb(o); };
+    row.appendChild(btn);
+  });
+  return row;
+}
+
+function mkSelect(label, opciones, btnLabel, cb){
+  const row=document.createElement('div'); row.className='sel-row';
+  const lbl=document.createElement('div'); lbl.style.cssText='font-size:12px;color:#666;margin-bottom:2px'; lbl.textContent=label;
+  const sel=document.createElement('select'); sel.innerHTML='<option value="">-- selecciona --</option>';
+  opciones.forEach(o=>{ const opt=document.createElement('option'); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
+  const btn=document.createElement('button'); btn.textContent=btnLabel;
+  btn.onclick=()=>{ if(!sel.value) return; disableAll(row); cb(sel.value); };
+  row.appendChild(lbl); row.appendChild(sel); row.appendChild(btn); return row;
+}
+
+function mkInputForm(campos, btnLabel, cb){
+  const row=document.createElement('div'); row.className='inp-row'; const inputs={};
+  campos.forEach(c=>{
+    const lbl=document.createElement('div'); lbl.style.cssText='font-size:12px;color:#666;margin-bottom:1px'; lbl.textContent=c.label;
+    let el;
+    if(c.type==='select'){ el=document.createElement('select'); el.innerHTML='<option value="">-- selecciona --</option>'; c.opts.forEach(o=>{ const opt=document.createElement('option'); opt.value=o; opt.textContent=o; el.appendChild(opt); }); }
+    else { el=document.createElement('input'); el.type=c.type||'text'; el.placeholder=c.placeholder||''; }
+    inputs[c.key]=el; row.appendChild(lbl); row.appendChild(el);
+  });
+  const btn=document.createElement('button'); btn.textContent=btnLabel;
+  btn.onclick=()=>{
+    const vals={};
+    for(const k in inputs){ if(!inputs[k].value){ inputs[k].style.borderColor='#e24b4a'; return; } vals[k]=inputs[k].value; }
+    disableAll(row); cb(vals);
+  };
+  row.appendChild(btn); return row;
+}
+
+function mkConfirm(filas, cbOk, cbKo){
+  const box=document.createElement('div'); box.className='confirm-box';
+  filas.forEach(f=>{
+    const lbl=document.createElement('div'); lbl.className='lbl'; lbl.textContent=f.label;
+    const val=document.createElement('div'); val.className='val'; val.textContent=f.val;
+    box.appendChild(lbl); box.appendChild(val);
+  });
+  const btns=document.createElement('div'); btns.className='confirm-btns';
+  const ok=document.createElement('button'); ok.className='btn-ok'; ok.textContent='Confirmar';
+  const ko=document.createElement('button'); ko.className='btn-ko'; ko.textContent='Cancelar';
+  ok.onclick=()=>{ ok.disabled=true; ko.disabled=true; ok.style.opacity='.5'; ko.style.opacity='.5'; cbOk(); };
+  ko.onclick=()=>{ ok.disabled=true; ko.disabled=true; ok.style.opacity='.5'; ko.style.opacity='.5'; cbKo(); };
+  btns.appendChild(ok); btns.appendChild(ko); box.appendChild(btns); return box;
+}
+
+function disableAll(row){ row.querySelectorAll('input,select,button').forEach(e=>{ e.disabled=true; e.style.opacity='.5'; }); }
+
+async function iniciar(){
+  await botReply('Hola 👋 Por favor, introduce tu código de vendedor.', 800);
+  state.fase='login';
+}
+
+async function handleLogin(cod){
+  const num=parseInt(cod);
+  const nombre=VENDEDORES[num];
+  if(!nombre){ await botReply('Código no reconocido. Inténtalo de nuevo.', 600); return; }
+  state.nombre=nombre;
+  state.fase='saludo';
+  await botReply('Hola '+nombre+' 👋 ¿qué tal estás?', 800);
+  await new Promise(r=>setTimeout(r,500));
+  await botReply('¿En qué tienda estás hoy?', 700);
+  state.fase='tienda';
+}
+
+async function handleTienda(txt){
+  state.tienda=txt;
+  document.getElementById('hdr-sub').textContent=txt;
+  await botReply('Perfecto 👍', 700);
+  await new Promise(r=>setTimeout(r,400));
+  state.fase='menu';
+  await botReply('¿Qué necesitas gestionar hoy?', 600,
+    mkOpts(['Abrir técnico de proveedor','Corregir cobro erróneo'], handleMenu));
+}
+
+function handleMenu(op){ addMsg(op,'usr'); if(op==='Abrir técnico de proveedor') flujoTecnico(); else flujoCobroP1(); }
+
+async function flujoTecnico(){
+  state.flujo='tecnico'; state.fase='tec_prov';
+  await botReply('Selecciona el proveedor:', 600,
+    mkSelect('Proveedor', Object.keys(PROVEEDORES), 'Siguiente →', v=>{ addMsg(v,'usr'); state.tecnico.proveedor=v; flujoTecnicoP2(v); }));
+}
+
+async function flujoTecnicoP2(prov){
+  state.fase='tec_tec';
+  await botReply('Selecciona el técnico de '+prov+':', 600,
+    mkSelect('Técnico', PROVEEDORES[prov], 'Siguiente →', v=>{ addMsg(v,'usr'); state.tecnico.tecnico=v; flujoTecnicoConfirm(); }));
+}
+
+async function flujoTecnicoConfirm(){
+  state.fase='tec_confirm';
+  await botReply('Revisa los datos:', 600,
+    mkConfirm([
+      {label:'Vendedor', val:state.nombre},
+      {label:'Tienda', val:state.tienda},
+      {label:'Proveedor', val:state.tecnico.proveedor},
+      {label:'Técnico', val:state.tecnico.tecnico}
+    ],
+    async()=>{ addMsg('Confirmar','usr'); await botReply('Enviando a Power Automate...', 700); await botReply('Técnico abierto correctamente. El robot procesa la apertura en el ERP.', 1200, (()=>{const d=document.createElement('div');d.innerHTML='<span class="badge-pa">⚡ PA en proceso</span>';return d;})() ); flujoFin(); },
+    async()=>{ addMsg('Cancelar','usr'); await botReply('Cancelado. ¿Qué más necesitas?', 600, mkOpts(['Abrir técnico de proveedor','Corregir cobro erróneo','Nada, gracias'], handleMenu2)); }
+    ));
+}
+
+async function flujoCobroP1(){
+  state.flujo='cobro'; state.fase='cobro_datos';
+  await botReply('Introduce los datos del cobro erróneo:', 700,
+    mkInputForm([
+      {key:'localizador', label:'Nº localizador', placeholder:'Ej: LOC-20240512-001'},
+      {key:'tipoPagoMal', label:'Tipo de pago erróneo', type:'select', opts:TIPOS_PAGO},
+      {key:'importeMal', label:'Importe erróneo €', type:'number', placeholder:'0.00'}
+    ], 'Siguiente →', vals=>{ addMsg('Loc: '+vals.localizador+' | '+vals.tipoPagoMal+' | '+vals.importeMal+'€','usr'); Object.assign(state.cobro,vals); flujoCobroP2(); }));
+}
+
+async function flujoCobroP2(){
+  state.fase='cobro_correcto';
+  await botReply('Ahora los datos correctos:', 700,
+    mkInputForm([
+      {key:'tipoPagoBien', label:'Tipo de pago correcto', type:'select', opts:TIPOS_PAGO},
+      {key:'importeBien', label:'Importe correcto €', type:'number', placeholder:'0.00'}
+    ], 'Siguiente →', vals=>{ addMsg(vals.tipoPagoBien+' | '+vals.importeBien+'€','usr'); Object.assign(state.cobro,vals); flujoCobroConfirm(); }));
+}
+
+async function flujoCobroConfirm(){
+  state.fase='cobro_confirm';
+  await botReply('Revisa la corrección:', 700,
+    mkConfirm([
+      {label:'Vendedor', val:state.nombre},
+      {label:'Tienda', val:state.tienda},
+      {label:'Nº localizador', val:state.cobro.localizador},
+      {label:'Pago erróneo', val:state.cobro.tipoPagoMal+' — '+state.cobro.importeMal+'€'},
+      {label:'Pago correcto', val:state.cobro.tipoPagoBien+' — '+state.cobro.importeBien+'€'}
+    ],
+    async()=>{ addMsg('Confirmar','usr'); await botReply('Incidencia registrada. El equipo la corregirá en el ERP.\nNº INC-'+Date.now().toString().slice(-6), 1000, (()=>{const d=document.createElement('div');d.innerHTML='<span class="badge-ok">✓ Registrada</span>';return d;})() ); flujoFin(); },
+    async()=>{ addMsg('Cancelar','usr'); await botReply('Cancelado. ¿Qué más necesitas?', 600, mkOpts(['Abrir técnico de proveedor','Corregir cobro erróneo','Nada, gracias'], handleMenu2)); }
+    ));
+}
+
+async function flujoFin(){
+  state.fase='fin';
+  await botReply('¿Necesitas algo más?', 900, mkOpts(['Abrir técnico de proveedor','Corregir cobro erróneo','Nada, gracias'], handleMenu2));
+}
+
+async function handleMenu2(op){
+  addMsg(op,'usr');
+  if(op==='Nada, gracias') await botReply('Hasta pronto, '+state.nombre+' 👋', 700);
+  else handleMenu(op);
+}
+
+function handleInput(){
+  const txt=ti.value.trim(); if(!txt) return; ti.value='';
+  if(state.fase==='login'){ addMsg(txt,'usr'); handleLogin(txt); }
+  else if(state.fase==='tienda'){ addMsg(txt,'usr'); handleTienda(txt); }
+  else { addMsg(txt,'usr'); botReply('Usa los botones del chat para navegar.', 500); }
+}
+
+sb.onclick=handleInput;
+ti.addEventListener('keydown', e=>{ if(e.key==='Enter') handleInput(); });
+setTimeout(iniciar, 500);
+</script>
+</body>
+</html>
