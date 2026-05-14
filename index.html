@@ -190,6 +190,41 @@ const SALUDOS=[
   ['Hola! \uD83D\uDC4B','Necesito tu c\u00f3digo para identificarte.'],
   ['Buenas \uD83D\uDE4C','Dime tu c\u00f3digo y te ayudo enseguida.']
 ];
+const TIENDAS={
+  "101":["L-CIG","CIGA","CIGALES"],
+  "102":["ALCO","ALCORCON","ALCORCÓN"],
+  "103":["VALL","RIO SHOPPING","RIO","RÍO"],
+  "104":["SALA","SALAMANCA"],
+  "105":["VITO","VITORIA"],
+  "106":["PINT","PINTO"],
+  "107":["LEON","LEÓN"],
+  "108":["MALA","MALAGA","MÁLAGA"],
+  "109":["ALCA","ALCALA","ALCALÁ"],
+  "112":["MEDI","MEDINA"],
+  "116":["LUGO"],
+  "120":["GRANA","GRANADA"],
+  "121":["CORU","CORUÑA","A CORUÑA","CORUNA"],
+  "122":["ALBA","ALBACETE"],
+  "124":["TALA","TALAVERA"],
+  "125":["VIGO"],
+  "136":["LOGR","LOGROÑO","LOGRONO"],
+  "137":["SANT","SANTANDER"],
+  "401":["L-VAL","LIQUIDA VALLADOLID","AVDA. SORIA","AVDA SORIA"]
+};
+function identificarTienda(txt){
+  const q=txt.trim().toUpperCase();
+  for(const cod in TIENDAS){
+    const aliases=TIENDAS[cod];
+    for(const a of aliases){
+      if(q.includes(a.toUpperCase()))return cod;
+    }
+  }
+  return null;
+}
+function nombreTienda(cod){
+  const aliases=TIENDAS[cod];
+  return aliases[aliases.length-1];
+}
 async function iniciar(){
   const s=SALUDOS[Math.floor(Math.random()*SALUDOS.length)];
   await botReply(s[0],800);
@@ -207,9 +242,17 @@ async function handleLogin(cod){
   state.fase='tienda';
 }
 async function handleTienda(txt){
-  state.tienda=txt;document.getElementById('hdr-sub').textContent=txt;
-  document.getElementById('chat-item-msg').textContent=txt;
-  await botReply('Perfecto \uD83D\uDC4D',700);
+  const cod=identificarTienda(txt);
+  if(!cod){
+    await botReply('No he reconocido esa tienda. Esc\u00edbela de otra forma (ej: CIGALES, SALAMANCA, RIO...)',600);
+    return;
+  }
+  const nombre=nombreTienda(cod);
+  state.tienda=nombre;state.tiendaCod=cod;
+  document.getElementById('hdr-sub').textContent=nombre;
+  const ci=document.getElementById('chat-item-msg');if(ci)ci.textContent=nombre;
+  addMsg(txt,'usr');
+  await botReply('Perfecto \uD83D\uDC4D Tienda '+nombre,700);
   await new Promise(r=>setTimeout(r,400));
   state.fase='menu';
   await botReply('\u00bfQu\u00e9 necesitas gestionar hoy?',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo'],handleMenu));
@@ -268,10 +311,28 @@ async function flujoCobroP1(){
   state.flujo='cobro';state.fase='cobro_datos';
   await botReply('Introduce los datos del cobro err\u00f3neo:',700,
     mkInputForm([
-      {key:'localizador',label:'N\u00ba localizador',placeholder:'Ej: LOC-20240512-001'},
+      {key:'localizador',label:'N\u00ba localizador',placeholder:'Ej: 101-240512-001'},
       {key:'tipoPagoMal',label:'Tipo de pago err\u00f3neo',type:'select',opts:TIPOS_PAGO},
       {key:'importeMal',label:'Importe err\u00f3neo \u20ac',type:'number',placeholder:'0.00'}
-    ],'Siguiente \u2192',vals=>{addMsg('Loc: '+vals.localizador+' | '+vals.tipoPagoMal+' | '+vals.importeMal+'\u20ac','usr');Object.assign(state.cobro,vals);flujoCobroP2();}));
+    ],'Siguiente \u2192',vals=>{
+      const loc=vals.localizador.trim();
+      const soloNums=loc.replace(/\D/g,'');
+      if(soloNums.length!==8){
+        botReply('\u26a0\ufe0f Revisa el c\u00f3digo del localizador, no me cuadra la referencia. Debe tener 8 d\u00edgitos.',700)
+          .then(()=>flujoCobroP1());
+        return;
+      }
+      const codLoc=loc.substring(0,3);
+      if(state.tiendaCod && codLoc!==state.tiendaCod){
+        const nombre=nombreTienda(state.tiendaCod);
+        botReply('\u26a0\ufe0f El localizador no corresponde a la tienda '+nombre+' ('+state.tiendaCod+'). Comprueba el n\u00famero e int\u00e9ntalo de nuevo.',700)
+          .then(()=>flujoCobroP1());
+        return;
+      }
+      addMsg('Loc: '+loc+' | '+vals.tipoPagoMal+' | '+vals.importeMal+'\u20ac','usr');
+      Object.assign(state.cobro,vals);
+      flujoCobroP2();
+    }));
 }
 async function flujoCobroP2(){
   state.fase='cobro_tipo_bien';
@@ -335,7 +396,7 @@ async function handleMenu2(op){addMsg(op,'usr');if(op==='Nada, gracias')await bo
 function handleInput(){
   const txt=ti.value.trim();if(!txt)return;ti.value='';
   if(state.fase==='login'){addMsg(txt,'usr');handleLogin(txt);}
-  else if(state.fase==='tienda'){addMsg(txt,'usr');handleTienda(txt);}
+  else if(state.fase==='tienda'){handleTienda(txt);}
   else if(state.fase==='tec_busca'){handleBuscaProveedor(txt);}
   else if(state.fase==='cobro_autorizacion'){handleAutorizacion(txt);}
   else{addMsg(txt,'usr');botReply('Usa los botones del chat para navegar.',500);}
