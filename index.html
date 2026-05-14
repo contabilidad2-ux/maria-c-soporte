@@ -186,7 +186,7 @@ function buscarProveedor(txt){
 }
 const SALUDOS=[
   ['Hola, qu\u00e9 tal \uD83D\uDC4B','Dime tu c\u00f3digo de vendedor.'],
-  ['Buenos d\u00edas \uD83D\uDE0A','\u00bfCon qu\u00e9 c\u00f3digo trabajas hoy?'],
+  ['Buenos d\u00edas \uD83D\uDE0A','Dime tu c\u00f3digo de vendedor y te ayudo enseguida.'],
   ['Hola! \uD83D\uDC4B','Necesito tu c\u00f3digo para identificarte.'],
   ['Buenas \uD83D\uDE4C','Dime tu c\u00f3digo y te ayudo enseguida.']
 ];
@@ -311,9 +311,9 @@ async function flujoCobroP1(){
   state.flujo='cobro';state.fase='cobro_datos';
   await botReply('Introduce los datos del cobro err\u00f3neo:',700,
     mkInputForm([
-      {key:'localizador',label:'N\u00ba localizador',placeholder:'Ej: 101-240512-001'},
+      {key:'localizador',label:'N\u00ba localizador',placeholder:'XXXXXXXX'},
       {key:'tipoPagoMal',label:'Tipo de pago err\u00f3neo',type:'select',opts:TIPOS_PAGO},
-      {key:'importeMal',label:'Importe err\u00f3neo \u20ac',type:'number',placeholder:'0.00'}
+      {key:'importeMal',label:'Importe err\u00f3neo \u20ac',type:'text',placeholder:'0.00'}
     ],'Siguiente \u2192',vals=>{
       const loc=vals.localizador.trim();
       const soloNums=loc.replace(/\D/g,'');
@@ -360,7 +360,7 @@ async function flujoCobroP3(){
 }
 async function handleAutorizacion(txt){
   if(!txt.toUpperCase().includes('PAC')){
-    await botReply('Autorizaci\u00f3n no v\u00e1lida. Pide a Pilar la autorizaci\u00f3n correcta e int\u00e9ntalo de nuevo.',600);
+    await botReply('Lo que has escrito no coincide con una autorizaci\u00f3n para este tipo, revisa lo que has puesto.',600);
     return;
   }
   addMsg(txt,'usr');
@@ -368,7 +368,7 @@ async function handleAutorizacion(txt){
   state.fase='cobro_importe_bien';
   await botReply('Perfecto \uD83D\uDC4D Ahora dime el importe correcto:',700,
     mkInputForm([
-      {key:'importeBien',label:'Importe correcto \u20ac',type:'number',placeholder:'0.00'}
+      {key:'importeBien',label:'Importe correcto \u20ac',type:'text',placeholder:'0.00'}
     ],'Siguiente \u2192',vals=>{
       addMsg(vals.importeBien+'\u20ac','usr');
       state.cobro.importeBien=vals.importeBien;
@@ -387,7 +387,7 @@ async function flujoCobroConfirm(){
   if(state.cobro.autorizacion)filas.push({label:'Autorizaci\u00f3n PAC',val:state.cobro.autorizacion});
   await botReply('Revisa la correcci\u00f3n:',700,mkConfirm(
     filas,
-    async()=>{addMsg('Confirmar','usr');await botReply('Me pongo con el cambio, en un momento est\u00e1 cambiado en EXPOWIN \uD83D\uDC4D',900);flujoFin();},
+    async()=>{addMsg('Confirmar','usr');await botReply('Me pongo con el cambio, en un momento estar\u00e1 actualizado en EXPOWIN.',900);flujoFin();},
     async()=>{addMsg('Cancelar','usr');await botReply('Cancelado.',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','Nada, gracias'],handleMenu2));}
   ));
 }
