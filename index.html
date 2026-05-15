@@ -2,16 +2,18 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>MARIA_C — Soporte Operativo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;background:#ece5dd;display:flex;justify-content:center;align-items:center;min-height:100vh}
+*{-webkit-tap-highlight-color:transparent}
+html{height:100%;height:-webkit-fill-available}
+body{font-family:'Nunito',sans-serif;background:#ece5dd;display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:-webkit-fill-available;overflow:hidden}
 
 /* MOBILE */
-#app{width:100%;max-width:420px;height:100vh;display:flex;flex-direction:column;background:#e5ddd5}
+#app{width:100%;max-width:420px;height:100vh;height:100dvh;display:flex;flex-direction:column;background:#e5ddd5;overflow:hidden}
 
 /* DESKTOP: WhatsApp Web layout */
 @media(min-width:768px){
@@ -38,7 +40,7 @@ body{font-family:'Nunito',sans-serif;background:#ece5dd;display:flex;justify-con
 #hdr-av{width:40px;height:40px;border-radius:50%;background:#128c7e;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 #hdr-name{color:#fff;font-size:15px;font-weight:600}
 #hdr-sub{color:rgba(255,255,255,.75);font-size:12px}
-#msgs{flex:1;overflow-y:auto;padding:12px 10px 6px;display:flex;flex-direction:column;gap:6px;background:#e5ddd5}
+#msgs{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 10px 6px;display:flex;flex-direction:column;gap:6px;background:#e5ddd5;-webkit-overflow-scrolling:touch}
 #msgs::-webkit-scrollbar{width:3px}
 #msgs::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
 .bbl{max-width:75%;padding:8px 11px 5px;border-radius:8px;font-size:14px;line-height:1.45;color:#111}
@@ -72,7 +74,7 @@ body{font-family:'Nunito',sans-serif;background:#ece5dd;display:flex;justify-con
 .dot:nth-child(3){animation-delay:.3s}
 @keyframes bop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 #bar{background:#f0f0f0;padding:8px 10px;display:flex;align-items:center;gap:8px;border-top:1px solid #ddd;flex-shrink:0}
-#ti{flex:1;border:none;background:#fff;border-radius:20px;padding:9px 14px;font-family:inherit;font-size:14px;outline:none;color:#111}
+#ti{flex:1;border:none;background:#fff;border-radius:20px;padding:9px 14px;font-family:inherit;font-size:16px;outline:none;color:#111}
 #sb{width:40px;height:40px;border-radius:50%;background:#25d366;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
 #sb:hover{background:#1ebe5d}
 #sb svg{width:20px;height:20px;fill:#fff}
@@ -187,8 +189,8 @@ function buscarProveedor(txt){
 const SALUDOS=[
   ['Hola, qu\u00e9 tal \uD83D\uDC4B','Dime tu c\u00f3digo de vendedor.'],
   ['Buenos d\u00edas \uD83D\uDE0A','Dime tu c\u00f3digo de vendedor y te ayudo enseguida.'],
-  ['Hola! \uD83D\uDC4B','Necesito tu c\u00f3digo para identificarte.'],
-  ['Buenas \uD83D\uDE4C','Dime tu c\u00f3digo y te ayudo enseguida.']
+  ['\u00a1Hola! \uD83D\uDC4B','Para identificarte necesito tu c\u00f3digo de vendedor.'],
+  ['Buenas \uD83D\uDE4C','\u00bfMe dices tu c\u00f3digo de vendedor?']
 ];
 const TIENDAS={
   "101":["L-CIG","CIGA","CIGALES"],
@@ -225,10 +227,18 @@ function nombreTienda(cod){
   const aliases=TIENDAS[cod];
   return aliases[aliases.length-1];
 }
+const SEGUNDAS=[
+  'Dime tu c\u00f3digo de vendedor.',
+  'Dime tu c\u00f3digo de vendedor y te ayudo enseguida.',
+  'Para identificarte necesito tu c\u00f3digo de vendedor.',
+  '\u00bfMe dices tu c\u00f3digo de vendedor?'
+];
 async function iniciar(){
-  const s=SALUDOS[Math.floor(Math.random()*SALUDOS.length)];
-  await botReply(s[0],800);
-  await botReply(s[1],700);
+  const saludo='Hola buenas \uD83D\uDC4B';
+  const segunda=SEGUNDAS[Math.floor(Math.random()*SEGUNDAS.length)];
+  await botReply(saludo,800);
+  await new Promise(r=>setTimeout(r,1200));
+  await botReply(segunda,700);
   state.fase='login';
 }
 async function handleLogin(cod){
@@ -236,9 +246,9 @@ async function handleLogin(cod){
   const num=match?parseInt(match[0]):NaN;const nombre=num?VENDEDORES[num]:null;
   if(!nombre){await botReply('No he encontrado ning\u00fan c\u00f3digo en tu mensaje. Int\u00e9ntalo de nuevo.',600);return;}
   state.nombre=nombre;state.fase='saludo';
-  await botReply('Hola '+nombre+' \uD83D\uDC4B \u00bfqu\u00e9 tal est\u00e1s?',800);
-  await new Promise(r=>setTimeout(r,500));
-  await botReply('\u00bfEn qu\u00e9 tienda est\u00e1s hoy?',700);
+  await botReply('Hola '+nombre+' \uD83D\uDC4B \u00bfqu\u00e9 tal?',900);
+  await new Promise(r=>setTimeout(r,700));
+  await botReply('\u00bfEn qu\u00e9 tienda est\u00e1s hoy?',800);
   state.fase='tienda';
 }
 async function handleTienda(txt){
@@ -249,16 +259,15 @@ async function handleTienda(txt){
   }
   const nombre=nombreTienda(cod);
   state.tienda=nombre;state.tiendaCod=cod;
-  document.getElementById('hdr-sub').textContent=nombre;
   const ci=document.getElementById('chat-item-msg');if(ci)ci.textContent=nombre;
   addMsg(txt,'usr');
-  await botReply('Perfecto \uD83D\uDC4D Tienda '+nombre,700);
-  await new Promise(r=>setTimeout(r,400));
+  await botReply('Ok '+nombre+', perfecto \uD83D\uDC4D',700);
+  await new Promise(r=>setTimeout(r,500));
   state.fase='menu';
-  await botReply('\u00bfQu\u00e9 necesitas gestionar hoy?',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo'],handleMenu));
+  await botReply('\u00bfEn qu\u00e9 te puedo ayudar hoy?',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo'],handleMenu));
 }
 function handleMenu(op){addMsg(op,'usr');if(op==='Abrir t\u00e9cnico de proveedor')flujoTecnicoP0();else flujoCobroP1();}
-async function flujoTecnicoP0(){state.flujo='tecnico';state.fase='tec_busca';await botReply('\u00bfDe qu\u00e9 proveedor necesitas abrir el t\u00e9cnico?\nEscribe el nombre o parte de \u00e9l.',700);}
+async function flujoTecnicoP0(){state.flujo='tecnico';state.fase='tec_busca';state.tecnico={};await botReply('Dime el proveedor, con el nombre o parte es suficiente.',800);}
 async function handleBuscaProveedor(txt){
   const matches=buscarProveedor(txt);
   if(matches.length===0){await botReply('No encontr\u00e9 ning\u00fan proveedor con "'+txt+'". Int\u00e9ntalo con otro t\u00e9rmino.',600);return;}
@@ -289,27 +298,51 @@ async function flujoTecnicoP1(){
     mkSelect('Programa',state.tecnico.programas,'Siguiente \u2192',v=>{
       addMsg('['+v.id+'] '+v.desc,'usr');
       state.tecnico.progId=v.id;state.tecnico.progDesc=v.desc;
-      flujoTecnicoConfirm();
+      if(v.desc.toUpperCase().includes('EXCEPCION')){
+        flujoTecnicoAutorizacion();
+      } else {
+        flujoTecnicoConfirm();
+      }
     }));
+}
+async function flujoTecnicoAutorizacion(){
+  state.fase='tec_autorizacion';
+  await botReply('Este tipo de t\u00e9cnico requiere autorizaci\u00f3n. Escr\u00edbela aqu\u00ed:',800);
+}
+async function handleTecnicoAutorizacion(txt){
+  const tieneLetras=/[a-zA-Z]/.test(txt);
+  const tieneNumeros=/[0-9]/.test(txt);
+  if(!tieneLetras || !tieneNumeros){
+    await botReply('La autorizaci\u00f3n no es v\u00e1lida, tiene que tener letras y n\u00fameros. Revisa lo que has puesto.',700);
+    return;
+  }
+  addMsg(txt,'usr');
+  state.tecnico.autorizacion=txt;
+  await botReply('Perfecto \uD83D\uDC4D',600);
+  await new Promise(r=>setTimeout(r,400));
+  flujoTecnicoConfirm();
 }
 async function flujoTecnicoConfirm(){
   state.fase='tec_confirm';
-  await botReply('Revisa los datos:',600,mkConfirm([
+  await botReply('Antes de enviarlo, confirma que todo est\u00e1 bien:',800,mkConfirm([
     {label:'Vendedor',val:state.nombre},
     {label:'Tienda',val:state.tienda},
     {label:'Proveedor',val:state.tecnico.provKey+' \u2013 '+state.tecnico.provNombre},
     {label:'Programa',val:'['+state.tecnico.progId+'] '+state.tecnico.progDesc}
-  ],
+  ].concat(state.tecnico.autorizacion?[{label:'Autorizaci\u00f3n',val:state.tecnico.autorizacion}]:[]),
   async()=>{
     addMsg('Confirmar','usr');
-    await botReply('Me pongo con la apertura, en un momento lo tienes abierto \uD83D\uDC4D',900);
+    await new Promise(r=>setTimeout(r,600));
+    await botReply('Perfecto, me pongo con ello ahora mismo.',800);
+    await new Promise(r=>setTimeout(r,1000));
+    await botReply('En un momento lo tienes abierto \uD83D\uDC4D',700);
     flujoFin();
   },
   async()=>{addMsg('Cancelar','usr');await botReply('Cancelado.',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','Nada, gracias'],handleMenu2));}));
 }
 async function flujoCobroP1(){
   state.flujo='cobro';state.fase='cobro_datos';
-  await botReply('Introduce los datos del cobro err\u00f3neo:',700,
+  await botReply('Dime los datos del cobro que hay que corregir:',900,
     mkInputForm([
       {key:'localizador',label:'N\u00ba localizador',placeholder:'XXXXXXXX'},
       {key:'tipoPagoMal',label:'Tipo de pago err\u00f3neo',type:'select',opts:TIPOS_PAGO},
@@ -336,7 +369,7 @@ async function flujoCobroP1(){
 }
 async function flujoCobroP2(){
   state.fase='cobro_tipo_bien';
-  await botReply('\u00bfCu\u00e1l es el tipo de pago correcto?',700,
+  await botReply('\u00bfY cu\u00e1l ser\u00eda el tipo de pago correcto?',800,
     mkSelect('Tipo de pago correcto',TIPOS_PAGO,'Siguiente \u2192',v=>{
       addMsg(v,'usr');
       state.cobro.tipoPagoBien=v;
@@ -345,7 +378,7 @@ async function flujoCobroP2(){
 }
 async function flujoCobroP3(){
   state.fase='cobro_mismo_importe';
-  await botReply('\u00bfEl importe es el mismo ('+state.cobro.importeMal+'\u20ac)?',700,
+  await botReply('El importe que hab\u00eda era '+state.cobro.importeMal+'\u20ac, \u00bfes el correcto tambi\u00e9n?',900,
     mkOpts(['S\u00ed, mismo importe','No, es diferente'],async(op)=>{
       addMsg(op,'usr');
       if(op==='S\u00ed, mismo importe'){
@@ -385,20 +418,34 @@ async function flujoCobroConfirm(){
     {label:'Pago correcto',val:state.cobro.tipoPagoBien+' \u2014 '+state.cobro.importeBien+'\u20ac'}
   ];
   if(state.cobro.autorizacion)filas.push({label:'Autorizaci\u00f3n PAC',val:state.cobro.autorizacion});
-  await botReply('Revisa la correcci\u00f3n:',700,mkConfirm(
+  await botReply('D\u00e9jame ver...',600);
+  await new Promise(r=>setTimeout(r,1000));
+  await botReply('Perfecto, \u00e9chale un ojo antes de confirmar:',700,mkConfirm(
     filas,
-    async()=>{addMsg('Confirmar','usr');await botReply('Me pongo con el cambio, en un momento estar\u00e1 actualizado en EXPOWIN.',900);flujoFin();},
+    async()=>{addMsg('Confirmar','usr');await new Promise(r=>setTimeout(r,600));await botReply('Me pongo con el cambio ahora mismo, t\u00fa no toques nada, ya me encargo yo.',800);await new Promise(r=>setTimeout(r,1000));await botReply('En un momento estar\u00e1 actualizado en EXPOWIN \uD83D\uDC4D',700);flujoFin();},
     async()=>{addMsg('Cancelar','usr');await botReply('Cancelado.',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','Nada, gracias'],handleMenu2));}
   ));
 }
-async function flujoFin(){state.fase='fin';await botReply('\u00bfNecesitas algo m\u00e1s?',900,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','Nada, gracias'],handleMenu2));}
-async function handleMenu2(op){addMsg(op,'usr');if(op==='Nada, gracias')await botReply('Hasta pronto, '+state.nombre+' \uD83D\uDC4B',700);else handleMenu(op);}
+async function flujoFin(){state.fase='fin';await botReply('\u00bfTe puedo ayudar con algo m\u00e1s?',900,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','No, gracias'],handleMenu2));}
+async function handleMenu2(op){
+  addMsg(op,'usr');
+  if(op==='No, gracias'){
+    const despedidas=[
+      '\u00a1Hasta luego '+state.nombre+'! Cualquier cosa ya sabes \uD83D\uDC4B',
+      'Hasta pronto '+state.nombre+', que vaya bien el d\u00eda \uD83D\uDC4B',
+      '\u00a1Venga, hasta la pr\u00f3xima '+state.nombre+'! \uD83D\uDC4B',
+      'Un saludo '+state.nombre+'\u00a1Hasta pronto! \uD83D\uDC4B'
+    ];
+    await botReply(despedidas[Math.floor(Math.random()*despedidas.length)],700);
+  } else handleMenu(op);
+}
 function handleInput(){
   const txt=ti.value.trim();if(!txt)return;ti.value='';
   if(state.fase==='login'){addMsg(txt,'usr');handleLogin(txt);}
   else if(state.fase==='tienda'){handleTienda(txt);}
   else if(state.fase==='tec_busca'){handleBuscaProveedor(txt);}
   else if(state.fase==='cobro_autorizacion'){handleAutorizacion(txt);}
+  else if(state.fase==='tec_autorizacion'){handleTecnicoAutorizacion(txt);}
   else{addMsg(txt,'usr');botReply('Usa los botones del chat para navegar.',500);}
 }
 sb.onclick=handleInput;
