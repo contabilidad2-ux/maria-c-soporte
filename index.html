@@ -339,7 +339,7 @@ async function flujoTecnicoConfirm(){
     await botReply('En un momento lo tienes abierto \uD83D\uDC4D',700);
     flujoFin();
   },
-  async()=>{addMsg('Cancelar','usr');await botReply('Cancelado.',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','Nada, gracias'],handleMenu2));}));
+  async()=>{addMsg('Cancelar','usr');await botReply('Vaya, alg\u00fan dato no estaba bien \uD83E\uDD14 Vamos a revisarlo.',700);await new Promise(r=>setTimeout(r,600));flujoCobroP1();}));
 }
 async function flujoCobroP1(){
   state.flujo='cobro';state.fase='cobro_datos';
@@ -373,6 +373,11 @@ async function flujoCobroP2(){
   await botReply('\u00bfY cu\u00e1l ser\u00eda el tipo de pago correcto?',800,
     mkSelect('Tipo de pago correcto',TIPOS_PAGO,'Siguiente \u2192',v=>{
       addMsg(v,'usr');
+      if(v===state.cobro.tipoPagoMal){
+        botReply('Has puesto el mismo tipo de pago. \u00bfEst\u00e1s seguro? Vuelve a introducir los datos.',700)
+          .then(()=>flujoCobroP1());
+        return;
+      }
       state.cobro.tipoPagoBien=v;
       flujoCobroP3();
     }));
@@ -423,8 +428,8 @@ async function flujoCobroConfirm(){
   await new Promise(r=>setTimeout(r,1000));
   await botReply('Perfecto, \u00e9chale un ojo antes de confirmar:',700,mkConfirm(
     filas,
-    async()=>{addMsg('Confirmar','usr');await new Promise(r=>setTimeout(r,600));await botReply('Me pongo con el cambio ahora mismo, t\u00fa no toques nada, ya me encargo yo.',800);await new Promise(r=>setTimeout(r,1000));await botReply('En un momento estar\u00e1 actualizado en EXPOWIN \uD83D\uDC4D',700);flujoFin();},
-    async()=>{addMsg('Cancelar','usr');await botReply('Cancelado.',600,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','Nada, gracias'],handleMenu2));}
+    async()=>{addMsg('Confirmar','usr');await new Promise(r=>setTimeout(r,600));await botReply('Me pongo con el cambio ahora mismo, t\u00fa no toques nada, ya me encargo yo.',800);await new Promise(r=>setTimeout(r,1000));await botReply('En un momento estar\u00e1 actualizado en EXPOWIN \uD83D\uDC4D',700);await new Promise(r=>setTimeout(r,800));await botReply('Antes de ponerme yo a hacer nada en la nota, ac\u00faerdate de salir de la pantalla de EXPOWIN \uD83D\uDC4B',900);flujoFin();},
+    async()=>{addMsg('Cancelar','usr');await botReply('Vaya, alg\u00fan dato no estaba bien \uD83E\uDD14 Vamos a revisarlo.',700);await new Promise(r=>setTimeout(r,600));flujoCobroP1();}
   ));
 }
 async function flujoFin(){state.fase='fin';await botReply('\u00bfTe puedo ayudar con algo m\u00e1s?',900,mkOpts(['Abrir t\u00e9cnico de proveedor','Corregir cobro err\u00f3neo','No, gracias'],handleMenu2));}
