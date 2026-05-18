@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>MARIA_C — Soporte Operativo</title>
+<title>MARIACE — Soporte Operativo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -92,7 +92,7 @@ body{font-family:'Nunito',sans-serif;background:#ece5dd;display:flex;justify-con
     <div id="sidebar-hdr">
       <div id="sidebar-av">🛍️</div>
       <div>
-        <div id="sidebar-title">MARIA_C</div>
+        <div id="sidebar-title">MARIACE</div>
         <div id="sidebar-sub">Soporte Operativo</div>
       </div>
     </div>
@@ -108,7 +108,7 @@ body{font-family:'Nunito',sans-serif;background:#ece5dd;display:flex;justify-con
     <div id="hdr">
       <div id="hdr-av">🛍️</div>
       <div>
-        <div id="hdr-name">MARIA_C</div>
+        <div id="hdr-name">MARIACE</div>
         <div id="hdr-sub">en línea</div>
       </div>
     </div>
@@ -278,10 +278,12 @@ async function iniciar(){
     state.tiendaCod=codURL;
     const ci=document.getElementById('chat-item-msg');if(ci)ci.textContent=state.tienda;
   }
-  const saludo=state.tienda
-    ? 'Hola '+state.tienda+' \uD83D\uDC4B Soy MARIA_C, para poder ayudarte necesito que me digas tu c\u00f3digo de vendedor.'
-    : 'Hola buenas \uD83D\uDC4B Soy MARIA_C, para poder ayudarte necesito que me digas tu c\u00f3digo de vendedor.';
-  await botReply(saludo,900);
+  const burbuja1=state.tienda
+    ? 'Hola '+state.tienda+' \uD83D\uDC4B Soy MARIACE.'
+    : 'Hola buenas \uD83D\uDC4B Soy MARIACE.';
+  await botReply(burbuja1,900);
+  await new Promise(r=>setTimeout(r,1200));
+  await botReply('Para poder ayudarte necesito que me digas tu c\u00f3digo de vendedor.',800);
   state.fase='login';
 }
 async function handleLogin(cod){
